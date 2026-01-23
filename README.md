@@ -1,6 +1,8 @@
-![Vercel with Neon](./docs/home.png)
-
--> View demo: [vercel-marketplace-neon.vercel.app](https://vercel-marketplace-neon.vercel.app/)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://neon.com/brand/neon-logo-dark-color.svg?new">
+  <source media="(prefers-color-scheme: light)" srcset="https://neon.com/brand/neon-logo-light-color.svg?new">
+  <img width="250px" alt="Neon Logo" src="https://neon.com/brand/neon-logo-dark-color.svg?new">
+</picture>
 
 # Neon Postgres
 
@@ -13,6 +15,12 @@ Click the "Deploy" button to clone this repo, create a new Vercel project, setup
 [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fneondatabase-labs%2Fvercel-marketplace-neon%2Ftree%2Fmain&project-name=my-vercel-neon-app&repository-name=my-vercel-neon-app&products=[{%22type%22:%22integration%22,%22integrationSlug%22:%22neon%22,%22productSlug%22:%22neon%22,%22protocol%22:%22storage%22}])
 
 Once the process is complete, you can clone the newly created GitHub repository and start making changes locally.
+
+## Demo
+
+View live demo: [vercel-marketplace-neon.vercel.app](https://vercel-marketplace-neon.vercel.app/)
+
+![Vercel with Neon](./docs/home.png)
 
 ## Local Setup
 
