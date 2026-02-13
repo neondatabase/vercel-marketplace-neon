@@ -66,6 +66,104 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project includes the [Neon MCP server](https://github.com/neondatabase/mcp-server-neon) and [neon-postgres agent skill](https://github.com/neondatabase/agent-skills) for AI-assisted development with Neon Postgres. Both are configured for Cursor, Claude Code and VS Code.
 
+## Shadcn/ui
+
+This project uses [shadcn/ui](https://ui.shadcn.com/) for building accessible and customizable UI components.
+
+### Configuration
+
+Shadcn/ui is configured in `components.json`. The project uses:
+- **Style**: New York
+- **Base Color**: Neutral
+- **Icon Library**: Lucide React
+- **CSS Variables**: Enabled for theming
+
+### Adding Components
+
+To add new shadcn/ui components:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+For example:
+```bash
+npx shadcn@latest add card
+npx shadcn@latest add dialog
+```
+
+### Theme Support
+
+The project includes a theme provider and selector:
+- **Theme Provider**: `src/components/themes/provider.tsx`
+- **Theme Selector**: `src/components/themes/selector.tsx`
+
+Themes are managed using `next-themes` and support light, dark, and system preferences.
+
+### Existing Components
+
+- `Button` - `src/components/ui/button.tsx`
+- `DropdownMenu` - `src/components/ui/dropdown-menu.tsx`
+
+### Learn More
+
+- [shadcn/ui Documentation](https://ui.shadcn.com/docs)
+- [shadcn/ui Components](https://ui.shadcn.com/docs/components)
+
+## Drizzle ORM
+
+This project uses [Drizzle ORM](https://orm.drizzle.team/) for type-safe database operations with PostgreSQL.
+
+### Configuration
+
+Drizzle is configured in `drizzle.config.ts`. The database client is set up in `src/lib/db/index.ts`.
+
+### Schema
+
+Database schemas are defined in `src/lib/db/schema.ts`. Currently includes an example `users` table that can be customized or removed based on your needs.
+
+### Database Scripts
+
+- `npm run db:generate` - Generate migration files from your schema
+- `npm run db:migrate` - Apply migrations to your database
+- `npm run db:studio` - Open Drizzle Studio (visual database browser)
+
+### Usage Example
+
+```typescript
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+// Select all users
+const allUsers = await db.select().from(users);
+
+// Insert a user
+await db.insert(users).values({
+  id: "123",
+  name: "John Doe",
+  email: "john@example.com",
+});
+
+// Update a user
+await db.update(users)
+  .set({ name: "Jane Doe" })
+  .where(eq(users.id, "123"));
+```
+
+### Running Migrations
+
+1. Update your schema in `src/lib/db/schema.ts`
+2. Generate migrations: `npm run db:generate`
+3. Review the generated SQL in the `drizzle/` folder
+4. Apply migrations: `npm run db:migrate`
+
+### Learn More
+
+- [Drizzle ORM Documentation](https://orm.drizzle.team/docs/overview)
+- [Drizzle with PostgreSQL](https://orm.drizzle.team/docs/get-started-postgresql)
+- [Drizzle Kit](https://orm.drizzle.team/kit-docs/overview)
+
 ## Learn More
 
 To learn more about Neon, check out the Neon documentation:
