@@ -116,7 +116,7 @@ This project uses [Drizzle ORM](https://orm.drizzle.team/) for type-safe databas
 
 ### Configuration
 
-Drizzle is configured in `drizzle.config.ts`. The database client is set up in `src/lib/db/index.ts`.
+Drizzle is configured in `drizzle.config.ts`. The database client is set up in `src/lib/db/client.ts`.
 
 ### Schema
 
@@ -131,7 +131,7 @@ Database schemas are defined in `src/lib/db/schema.ts`. Currently includes an ex
 ### Usage Example
 
 ```typescript
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 

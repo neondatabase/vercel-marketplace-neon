@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeSelector } from "@/components/themes/selector";
-import { checkDbConnection } from "@/lib/db";
+import { checkDbConnection } from "@/lib/db/client";
 
 export default async function Home() {
   const result = await checkDbConnection();
