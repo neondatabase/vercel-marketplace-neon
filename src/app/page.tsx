@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { checkDbConnection } from "./db";
+import { ThemeSelector } from "@/components/themes/selector";
 
 export default async function Home() {
   const result = await checkDbConnection();
   return (
     <div className="flex min-h-screen flex-col">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 md:max-w-lg md:px-0 lg:max-w-xl">
-        <main className="flex flex-1 flex-col justify-center">
-          <div className="mb-6 md:mb-7">
+        <header className="flex items-center justify-between py-6 md:py-8">
+          <div>
             <Image
               className="lg:h-7 lg:w-auto dark:hidden"
               src="/logo.svg"
@@ -26,6 +27,9 @@ export default async function Home() {
               priority
             />
           </div>
+          <ThemeSelector />
+        </header>
+        <main className="flex flex-1 flex-col justify-center">
           <h1 className="text-3xl font-semibold leading-none tracking-tighter md:text-4xl md:leading-none lg:text-5xl lg:leading-none">
             Vercel with Neon Postgres
           </h1>
