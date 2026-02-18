@@ -20,8 +20,6 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/db/*": ["./src/lib/db/*"],
-      "@/auth/*": ["./src/lib/auth/*"]
     }
   },
   "include": [
