@@ -80,7 +80,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 #### Neon MCP Server & Agent Skill
 
-This project includes the [Neon MCP server](https://github.com/neondatabase/mcp-server-neon) and [neon-postgres agent skill](https://github.com/neondatabase/agent-skills) for AI-assisted development with Neon Postgres. Both are configured for Cursor, Claude Code and VS Code.
+This project includes the [Neon MCP server](https://github.com/neondatabase/mcp-server-neon) and [neon-postgres agent skill](https://github.com/neondatabase/agent-skills) for AI-assisted development with Neon Postgres. Both are configured for Cursor, Claude Code, VS Code, OpenCode, and Codex.
 
 ## Shadcn/ui
 
