@@ -1,19 +1,8 @@
----
-name: neon-postgres-egress-optimizer
-description: >-
-  Diagnose and fix excessive Postgres egress (network data transfer) in a codebase.
-  Use when a user mentions high database bills, unexpected data transfer costs,
-  network transfer charges, egress spikes, "why is my Neon bill so high",
-  "database costs jumped", SELECT * optimization, query overfetching,
-  reduce Neon costs, optimize database usage, or wants to reduce data sent
-  from their database to their application. Also use when reviewing query
-  patterns for cost efficiency, even if the user doesn't explicitly mention
-  egress or data transfer.
----
-
 # Postgres Egress Optimizer
 
 Guide the user through diagnosing and fixing application-side query patterns that cause excessive data transfer (egress) from their Postgres database. Most high egress bills come from the application fetching more data than it uses.
+
+Work the four steps in order: **diagnose** which queries transfer the most data, **analyze** the codebase behind them, **fix** the anti-patterns, then **verify** nothing broke and the transfer actually dropped.
 
 ## Step 1: Diagnose
 
@@ -31,13 +20,13 @@ If this errors, the extension needs to be created:
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 
-On Neon, it is available by default but may need this CREATE EXTENSION step.
+On Neon the extension is available by default, but it may still need this CREATE EXTENSION step. Ask before creating it because installing an extension modifies the database.
 
 ### Handle empty stats
 
 Stats are cleared when a Neon compute scales to zero and restarts. If the stats are empty or the compute recently woke up:
 
-1. Reset the stats to start a clean measurement window: `SELECT pg_stat_statements_reset();`
+1. Ask before resetting the stats, then start a clean measurement window with `SELECT pg_stat_statements_reset();`
 2. Let the application run under representative traffic for at least an hour.
 3. Return and run the diagnostic queries below.
 
@@ -96,7 +85,7 @@ Rank findings by estimated egress impact:
 - **Extreme call frequency** on even small queries adds up. A query called 50,000 times/day returning 10 rows each = 500,000 rows/day.
 - **Cross-reference with the schema** to identify which columns are wide. Look for JSONB, TEXT, BYTEA, and large VARCHAR columns.
 
-## Step 2: Analyze codebase
+## Step 2: Analyze the Codebase
 
 For each query identified in Step 1, or for each database query in the codebase if no stats are available, check:
 
@@ -113,6 +102,8 @@ Apply the appropriate fix for each problem found. Below are the most common egre
 ### Unused columns (SELECT \*)
 
 **Problem:** The query fetches all columns but the application only uses a few. Large columns (JSONB blobs, TEXT fields) get transferred over the wire and discarded.
+
+**Fix:** Name only the columns the response needs.
 
 **Before:**
 
@@ -131,6 +122,8 @@ SELECT id, name, price, image_urls FROM products;
 **Problem:** A list endpoint returns all rows with no LIMIT. This is an unbounded egress risk — every new row in the table increases data transfer on every request. Flag this regardless of current table size.
 
 This is easy to miss because the application may work fine with small datasets. But at scale, an unpaginated endpoint returning 10,000 rows with even moderate column widths can transfer hundreds of megabytes per day.
+
+**Fix:** Bound the result set with `ORDER BY` plus `LIMIT`/`OFFSET`.
 
 **Before:**
 
@@ -154,7 +147,7 @@ When adding pagination, check whether the consuming client already supports pagi
 
 Look for queries with extremely high call counts relative to other queries. Common examples: configuration tables, category lists, feature flags, user role definitions.
 
-**Fix:** Add a caching layer between the application and the database so it avoids hitting the database on every request.
+**Fix:** Add a caching layer between the application and the database so it avoids hitting the database on every request. Reuse a cache the app already has. Otherwise, a serverless Redis such as [Upstash Redis](https://upstash.com/docs/redis) works from serverless and edge runtimes without connection management.
 
 ### Application-side aggregation
 
@@ -181,6 +174,8 @@ GROUP BY p.category_id;
 
 This is distinct from the SELECT \* problem. Even if you select only needed columns, a JOIN still repeats the parent data for every child row. The fix is structural: avoid the join entirely.
 
+**Fix:** Split the join into two queries, one per table.
+
 **Before:**
 
 ```sql
@@ -204,9 +199,44 @@ After applying fixes:
 
 1. **Run existing tests** to confirm nothing broke.
 2. **Check the responses** — make sure the API still returns the same data shape. Column selection and pagination changes can break clients that depend on specific fields or full result sets.
-3. **Measure the improvement** — if pg_stat_statements data is available, reset it (`SELECT pg_stat_statements_reset();`), let traffic run, then re-run the diagnostic queries to compare before and after.
+3. **Measure the improvement** — if pg_stat_statements data is available, ask before resetting it (`SELECT pg_stat_statements_reset();`), let traffic run, then re-run the diagnostic queries to compare before and after.
 
-## Further reading
+## Neon Infrastructure as Code (`neon.ts`)
+
+The fixes above cut **egress** (data transferred out of Postgres). The other big non-prod cost lever is **compute**, and you can codify it durably in `neon.ts` — Neon's infrastructure-as-code file (see the `neon` skill for the full reference) — so dev, preview, and CI branches stay cheap by default instead of relying on per-branch flags:
+
+```bash
+npm i @neon/config
+```
+
+```typescript
+// neon.ts
+import { defineConfig } from "@neon/config/v1";
+
+export default defineConfig({
+  branch: (branch) => {
+    if (branch.exists || branch.isDefault) return {}; // don't touch prod
+    return {
+      ttl: "7d", // ephemeral branches auto-expire instead of accruing storage
+      postgres: {
+        computeSettings: {
+          autoscalingLimitMinCu: 0.25, // scale to zero when idle
+          autoscalingLimitMaxCu: 1, // cap autoscaling on throwaway branches
+          suspendTimeout: "5m",
+        },
+      },
+    };
+  },
+});
+```
+
+```bash
+neon config apply   # apply to the current branch (neon deploy is an alias)
+```
+
+This is complementary, not a substitute: query-pattern fixes are what actually reduce egress charges, while these settings keep non-production compute and storage from quietly inflating the same bill. Because `neon checkout` applies the policy when it creates a branch, new dev/preview branches inherit the cheap profile automatically.
+
+## Further Reading
 
 - https://neon.com/docs/introduction/network-transfer.md
 - https://neon.com/docs/introduction/cost-optimization.md
